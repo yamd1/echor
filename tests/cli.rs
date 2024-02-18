@@ -1,16 +1,41 @@
 use assert_cmd::Command;
 use predicates::prelude::*;
 
-#[test]
-fn dies_no_args() {
-    let mut cmd = Command::cargo_bin("echor").unwrap();
-    cmd.assert()
-        .failure()
-        .stderr(predicate::str::contains("USAGE"));
+type TestResult = Result<(), Box<dyn std::error::Error>>;
+fn run(args: &[&str], expected: &str) -> TestResult {
+    Command::cargo_bin("echor")?
+        .args(args)
+        .assert()
+        .success()
+        .stdout(expected.to_owned());
+    Ok(())
 }
 
 #[test]
-fn runs() {
-    let mut cmd = Command::cargo_bin("echor").unwrap();
-    cmd.arg("hello").assert().success();
+fn dies_no_args() -> TestResult {
+    Command::cargo_bin("echor")?
+        .assert()
+        .failure()
+        .stderr(predicate::str::contains("USAGE"));
+    Ok(())
+}
+
+#[test]
+fn hello1() -> TestResult {
+    run(&["Hello World!", "-n"], "Hello World!")
+}
+
+#[test]
+fn hello2() -> TestResult {
+    run(&["Hello World!"], "Hello World!\n")
+}
+
+#[test]
+fn hello3() -> TestResult {
+    run(&["Hello", "World", "!"], "Hello World !\n")
+}
+
+#[test]
+fn hello4() -> TestResult {
+    run(&["Hello", "World", "!", "-n"], "Hello World !")
 }
